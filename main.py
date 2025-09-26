@@ -67,7 +67,7 @@ def calcular_tempo_restante(data_formatura: datetime) -> dict:
     
     # Mensagem motivacional baseada no tempo restante
     if dias > 30:
-        mensagem = f"📖 Faltam {dias} dias! O fim se aproxima!"
+        mensagem = f"📖 Faltam {dias} dias!!!"
     elif dias > 7:
         mensagem = f"⏰ Última semana! Apenas {dias} dias restantes!"
     elif dias > 0:

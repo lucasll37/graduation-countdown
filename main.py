@@ -353,41 +353,6 @@ async def api_tempo_para_formatura():
         data_formatura=data_formatura.strftime("%d/%m/%Y às %H:%M")
     )
 
-@app.get("/config")
-async def obter_configuracao():
-    """
-    Retorna a configuração atual da data de formatura
-    """
-    data_formatura = obter_data_formatura()
-    return {
-        "data_formatura": data_formatura.strftime("%Y-%m-%d"),
-        "hora_formatura": data_formatura.strftime("%H:%M"),
-        "data_formatada": data_formatura.strftime("%d/%m/%Y às %H:%M")
-    }
-
-@app.post("/config")
-async def configurar_formatura(config: ConfigFormatura):
-    """
-    Configura uma nova data de formatura (apenas para a sessão atual)
-    """
-    try:
-        nova_data = datetime.strptime(f"{config.data_formatura} {config.hora_formatura}", "%Y-%m-%d %H:%M")
-        
-        # Em uma aplicação real, você salvaria isso em um banco de dados
-        # Por simplicidade, vamos apenas retornar a confirmação
-        
-        return {
-            "sucesso": True,
-            "mensagem": "Data de formatura configurada com sucesso!",
-            "nova_data": nova_data.strftime("%d/%m/%Y às %H:%M"),
-            "nota": "Esta configuração é apenas para demonstração. Para persistir, configure as variáveis de ambiente."
-        }
-    except ValueError:
-        raise HTTPException(
-            status_code=400, 
-            detail="Formato de data inválido. Use YYYY-MM-DD para data e HH:MM para hora."
-        )
-
 @app.get("/health")
 async def health_check():
     """

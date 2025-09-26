@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from datetime import datetime, timedelta
 import os
 from pydantic import BaseModel
@@ -65,10 +66,8 @@ def calcular_tempo_restante(data_formatura: datetime) -> dict:
     segundos = segundos_restantes % 60
     
     # Mensagem motivacional baseada no tempo restante
-    if dias > 365:
-        mensagem = f"📚 Ainda há muito tempo! Faltam {dias} dias para a formatura. Continue estudando!"
-    elif dias > 30:
-        mensagem = f"📖 Faltam {dias} dias! O fim está se aproximando, mantenha o foco!"
+    if dias > 30:
+        mensagem = f"📖 Faltam {dias} dias! O fim se aproxima!"
     elif dias > 7:
         mensagem = f"⏰ Última semana! Apenas {dias} dias restantes!"
     elif dias > 0:
@@ -86,10 +85,265 @@ def calcular_tempo_restante(data_formatura: datetime) -> dict:
         "mensagem": mensagem
     }
 
-@app.get("/", response_model=GraduationResponse)
-async def tempo_para_formatura():
+@app.get("/", response_class=HTMLResponse)
+async def homepage():
     """
-    Retorna quanto tempo falta para a formatura
+    Página principal com interface visual do countdown
+    """
+    data_formatura = obter_data_formatura()
+    resultado = calcular_tempo_restante(data_formatura)
+    
+    # Emojis baseados no status
+    emoji_principal = "🎓" if resultado["ja_formado"] else "⏰"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Formatura T-25 🎓</title>
+        <style>
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+            
+            body {{
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+            }}
+            
+            .container {{
+                text-align: center;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 3rem;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                max-width: 600px;
+                width: 90%;
+            }}
+            
+            .emoji {{
+                font-size: 4rem;
+                margin-bottom: 1rem;
+                animation: bounce 2s infinite;
+            }}
+            
+            @keyframes bounce {{
+                0%, 20%, 50%, 80%, 100% {{ transform: translateY(0); }}
+                40% {{ transform: translateY(-10px); }}
+                60% {{ transform: translateY(-5px); }}
+            }}
+            
+            h1 {{
+                font-size: 2.5rem;
+                margin-bottom: 1rem;
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            }}
+            
+            .countdown {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 1rem;
+                margin: 2rem 0;
+            }}
+            
+            .time-unit {{
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 15px;
+                padding: 1.5rem 1rem;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }}
+            
+            .time-number {{
+                font-size: 2.5rem;
+                font-weight: bold;
+                display: block;
+                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            }}
+            
+            .time-label {{
+                font-size: 0.9rem;
+                opacity: 0.9;
+                margin-top: 0.5rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }}
+            
+            .message {{
+                font-size: 1.2rem;
+                margin: 2rem 0;
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                border-left: 4px solid #ffd700;
+            }}
+            
+            .graduation-date {{
+                font-size: 1.1rem;
+                opacity: 0.8;
+                margin-bottom: 2rem;
+            }}
+            
+            .api-links {{
+                margin-top: 2rem;
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }}
+            
+            .api-link {{
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                text-decoration: none;
+                padding: 0.7rem 1.5rem;
+                border-radius: 25px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                transition: all 0.3s ease;
+                font-size: 0.9rem;
+            }}
+            
+            .api-link:hover {{
+                background: rgba(255, 255, 255, 0.3);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }}
+            
+            .api-links {{
+                margin-top: 2rem;
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }}
+            
+            .api-link {{
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                text-decoration: none;
+                padding: 0.7rem 1.5rem;
+                border-radius: 25px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                transition: all 0.3s ease;
+                font-size: 0.9rem;
+            }}
+            
+            .api-link:hover {{
+                background: rgba(255, 255, 255, 0.3);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }}
+            
+            .refresh-btn {{
+                background: #ffd700;
+                color: #333;
+                border: none;
+                padding: 1rem 2rem;
+                border-radius: 25px;
+                font-size: 1rem;
+                font-weight: bold;
+                cursor: pointer;
+                margin-top: 1rem;
+                transition: all 0.3s ease;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }}
+            
+            .refresh-btn:hover {{
+                background: #ffed4e;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }}
+            
+            @media (max-width: 768px) {{
+                .container {{
+                    padding: 2rem 1rem;
+                }}
+                
+                h1 {{
+                    font-size: 2rem;
+                }}
+                
+                .countdown {{
+                    grid-template-columns: repeat(2, 1fr);
+                }}
+                
+                .time-number {{
+                    font-size: 2rem;
+                }}
+                
+                .api-links {{
+                    flex-direction: column;
+                    align-items: center;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="emoji">{emoji_principal}</div>
+            <h1>Countdown para Formatura T-25</h1>
+            
+            <div class="graduation-date">
+                📅 {data_formatura.strftime("%d/%m/%Y às %H:%M")}
+            </div>
+            
+            <div class="countdown">
+                <div class="time-unit">
+                    <span class="time-number">{resultado['dias_restantes']}</span>
+                    <div class="time-label">Dias</div>
+                </div>
+                <div class="time-unit">
+                    <span class="time-number">{resultado['horas_restantes']}</span>
+                    <div class="time-label">Horas</div>
+                </div>
+                <div class="time-unit">
+                    <span class="time-number">{resultado['minutos_restantes']}</span>
+                    <div class="time-label">Minutos</div>
+                </div>
+                <div class="time-unit">
+                    <span class="time-number">{resultado['segundos_restantes']}</span>
+                    <div class="time-label">Segundos</div>
+                </div>
+            </div>
+            
+            <div class="message">
+                {resultado['mensagem']}
+            </div>
+            
+            <button class="refresh-btn" onclick="window.location.reload()">
+                🔄 Atualizar
+            </button>
+            
+
+        </div>
+        
+        <script>
+            // Auto-refresh a cada 30 segundos
+            setTimeout(() => {{
+                window.location.reload();
+            }}, 30000);
+        </script>
+    </body>
+    </html>
+    """
+    
+    return html_content
+
+@app.get("/api", response_model=GraduationResponse)
+async def api_tempo_para_formatura():
+    """
+    Retorna dados JSON do tempo para formatura (antiga rota principal)
     """
     data_formatura = obter_data_formatura()
     resultado = calcular_tempo_restante(data_formatura)

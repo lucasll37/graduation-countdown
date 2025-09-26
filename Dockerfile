@@ -17,8 +17,8 @@ COPY . .
 EXPOSE 8000
 
 # Define variáveis de ambiente padrão
-ENV DATA_FORMATURA=2024-12-15
-ENV HORA_FORMATURA=09:00
+ENV DATA_FORMATURA=2025-12-19
+ENV HORA_FORMATURA=10:00
 
 # Comando para executar a aplicação
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
